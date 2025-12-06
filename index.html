@@ -26,6 +26,7 @@ function submitChoices() {
 
   fetch(SCRIPT_URL, {
   method: "POST",
+  mode: "no-cors", // Allow write without needing CORS headers
   headers: {
     "Content-Type": "application/json"
   },
@@ -33,15 +34,14 @@ function submitChoices() {
     interests: selectedInterests
   })
 })
-.then(res => res.json())
-.then(data => {
-  console.log("Saved:", data);
-  alert("Thanks! Your choices are recorded ✔");
+.then(() => {
+  alert("Thanks! Your choices are recorded anonymously ✔");
 })
-.catch(err => {
-  console.error("Error:", err);
-  alert("Error sending data ❌");
+.catch(error => {
+  console.error("Maybe still saved, but network issue:", error);
+  alert("Network issue. Check again.");
 });
+
 }
 </script>
 </body>
