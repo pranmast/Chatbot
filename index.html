@@ -24,15 +24,24 @@ function submitChoices() {
     return;
   }
 
-  fetch(API, {
-    method: "POST",
-    contentType: "application/json",
-    body: JSON.stringify({ choices: selected })
+  fetch(SCRIPT_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    interests: selectedInterests
   })
-  .then(r => r.json())
-  .then(res => {
-    document.getElementById("msg").innerHTML = "Recorded! Your ID: " + res.user;
-  });
+})
+.then(res => res.json())
+.then(data => {
+  console.log("Saved:", data);
+  alert("Thanks! Your choices are recorded ✔");
+})
+.catch(err => {
+  console.error("Error:", err);
+  alert("Error sending data ❌");
+});
 }
 </script>
 </body>
