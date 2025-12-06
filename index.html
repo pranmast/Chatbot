@@ -15,34 +15,34 @@
 <p id="msg"></p>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbywCkcWepBcpCD_-1ij-p1UYAtnLnt8Tn-U-F_Ya5PsS87FNQMPdK6TLUZcPLclNvARSQ/exec"; // Replace after Deploy
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywCkcWepBcpCD_-1ij-p1UYAtnLnt8Tn-U-F_Ya5PsS87FNQMPdK6TLUZcPLclNvARSQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQDPmkUyOTGl1HOpXTJ4tYhkSsBE8Ys8JGq3pPxnu5M-_2VfwlSVdeRcq16iwRtBjr9w/exec";
 
 function submitChoices() {
-  const selected = [...document.querySelectorAll("input:checked")].map(e => e.value);
+  const selected = [...document.querySelectorAll('input:checked')].map(i => i.value);
+
   if (selected.length !== 3) {
-    document.getElementById("msg").innerHTML = "Choose exactly 3!";
+    alert("Please select exactly 3 interests!");
     return;
   }
 
-  fetch(SCRIPT_URL, {
-  method: "POST",
-  mode: "no-cors", // Allow write without needing CORS headers
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    interests: selectedInterests
-  })
-})
-.then(() => {
-  alert("Thanks! Your choices are recorded anonymously ✔");
-})
-.catch(error => {
-  console.error("Maybe still saved, but network issue:", error);
-  alert("Network issue. Check again.");
-});
+  const userKey = "anon_" + Date.now();
 
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ [userKey]: selected })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("Saved:", data);
+    alert("Thanks! Your choices are recorded anonymously ✔");
+  })
+  .catch(err => {
+    console.error("Error:", err);
+    alert("Something went wrong ❌");
+  });
 }
 </script>
 </body>
