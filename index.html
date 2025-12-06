@@ -1,119 +1,54 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8"/>
-  <title>Life Choices — Chatbot</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <style>
-    body{font-family:system-ui,Segoe UI,Helvetica,Arial;max-width:720px;margin:16px auto;padding:8px}
-    .bubble{background:#f1f1f1;padding:10px;border-radius:10px;margin:6px 0}
-    .user{background:#dbeafe;text-align:right}
-    .choices button{margin:6px}
-  </style>
+<title>Anonymous Life Choice Chatbot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: Arial, sans-serif; background:#f4f4f4; padding:20px; text-align:center; }
+.chatbox { background:white; padding:20px; border-radius:10px; max-width:500px; margin:auto; box-shadow:0 0 10px #ccc; }
+.messages { height:300px; overflow-y:auto; border:1px solid #ddd; margin-bottom:10px; padding:10px; border-radius:5px; text-align:left; }
+input { width:75%; padding:10px; border-radius:5px; border:1px solid #aaa; }
+button { padding:10px; border:none; border-radius:5px; background:#007bff; color:white; cursor:pointer; }
+button:hover { background:#0056b3; }
+</style>
 </head>
+
 <body>
-  <h2>LifeChoices — Quick Chat</h2>
-  <div id="chat"></div>
-  <div id="inputArea"></div>
+<h2>🌍 Anonymous Choice Chatbot</h2>
+<div class="chatbox">
+  <div class="messages" id="messages"></div>
+
+  <input type="text" id="userInput" placeholder="Type your favorite interest…">
+  <button onclick="sendMsg()">Send</button>
+</div>
 
 <script>
-const GAS_URL = 'https://script.google.com/d/1NxcW9qRuNkpTrKY4XJw0sioM3BKzmtUsmeGC82g6tEcD5O2SWAmIkJvW/edit?usp=sharing'; // e.g. https://script.google.com/macros/s/XXX/exec
-const chat = document.getElementById('chat');
-const inputArea = document.getElementById('inputArea');
+const scriptURL = "https://script.google.com/d/1NxcW9qRuNkpTrKY4XJw0sioM3BKzmtUsmeGC82g6tEcD5O2SWAmIkJvW/edit?usp=sharing";
 
-let state = { step:0, choices: [] };
+function sendMsg() {
+  const input = document.getElementById("userInput");
+  const text = input.value.trim();
+  if (!text) return;
 
-function say(text, cls='bot') {
-  const d = document.createElement('div');
-  d.className = 'bubble ' + (cls==='bot'?'':'user');
-  d.textContent = text; chat.appendChild(d); window.scrollTo(0,document.body.scrollHeight);
-}
+  addMsg("🧍 You: " + text);
 
-function showChoices() {
-  inputArea.innerHTML = '';
-  const container = document.createElement('div');
-  container.className = 'choices';
-  const options = ['Tech','Sports','Travel','Food','Music','Movies','Art','Science','Fitness','Gaming'];
-  options.forEach(opt=>{
-    const btn = document.createElement('button');
-    btn.textContent = opt;
-    btn.onclick = ()=>choose(opt);
-    container.appendChild(btn);
+  fetch(scriptURL, {
+    method: "POST",
+    body: JSON.stringify({ interest: text })
+  }).then(() => {
+    addMsg("🤖 Bot: Recorded anonymously!");
+  }).catch(() => {
+    addMsg("⚠ Failed to record.");
   });
-  inputArea.appendChild(container);
-  const info = document.createElement('div');
-  info.innerHTML = '<small>Pick exactly <b>3</b> interests.</small>';
-  inputArea.appendChild(info);
+
+  input.value = "";
 }
 
-function choose(opt) {
-  if (state.choices.includes(opt)) {
-    state.choices = state.choices.filter(x=>x!==opt);
-  } else {
-    if (state.choices.length >= 3) { alert('You already chose 3'); return; }
-    state.choices.push(opt);
-  }
-  updateChoiceButtons();
-  if (state.choices.length === 3) {
-    // show submit button
-    const btn = document.createElement('button');
-    btn.textContent = 'Submit anonymously';
-    btn.onclick = submit;
-    inputArea.appendChild(document.createElement('br'));
-    inputArea.appendChild(btn);
-  }
+function addMsg(txt) {
+  const box = document.getElementById("messages");
+  box.innerHTML += "<div>" + txt + "</div>";
+  box.scrollTop = box.scrollHeight;
 }
-
-function updateChoiceButtons() {
-  // update button styles
-  Array.from(document.querySelectorAll('.choices button')).forEach(b=>{
-    b.style.opacity = state.choices.includes(b.textContent)?'1':'0.6';
-  });
-}
-
-function submit() {
-  const payload = {
-    id: 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8),
-    ts: new Date().toISOString(),
-    ageRange: 'unknown',
-    choices: state.choices,
-    country: null,
-    tags: []
-  };
-  say('You: ' + state.choices.join(', '), 'user');
-  say('Submitting anonymously...');
-  fetch(GAS_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
-  }).then(r=>r.json()).then(j=>{
-    if (j.ok) {
-      say('Thanks — your choices were recorded anonymously.');
-      inputArea.innerHTML = '<em>Done — close this tab or try again.</em>';
-    } else {
-      say('Error: ' + (j.error || 'unknown'));
-      // fallback: let user download their JSON for manual upload
-      const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'submission_'+payload.id+'.json';
-      a.textContent = 'Download your anonymous submission';
-      inputArea.appendChild(a);
-    }
-  }).catch(err=>{
-    say('Network error — offline fallback: download submission file.');
-    const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'submission_'+payload.id+'.json';
-    a.textContent = 'Download your anonymous submission';
-    inputArea.appendChild(a);
-  });
-}
-
-// start
-say('Hi — tell me your top 3 interests. Tap to choose.');
-showChoices();
 </script>
 </body>
 </html>
