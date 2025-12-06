@@ -1,53 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>Anonymous Life Choice Chatbot</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body { font-family: Arial, sans-serif; background:#f4f4f4; padding:20px; text-align:center; }
-.chatbox { background:white; padding:20px; border-radius:10px; max-width:500px; margin:auto; box-shadow:0 0 10px #ccc; }
-.messages { height:300px; overflow-y:auto; border:1px solid #ddd; margin-bottom:10px; padding:10px; border-radius:5px; text-align:left; }
-input { width:75%; padding:10px; border-radius:5px; border:1px solid #aaa; }
-button { padding:10px; border:none; border-radius:5px; background:#007bff; color:white; cursor:pointer; }
-button:hover { background:#0056b3; }
-</style>
-</head>
-
 <body>
-<h2>🌍 Anonymous Choice Chatbot</h2>
-<div class="chatbox">
-  <div class="messages" id="messages"></div>
+<h2>Choose 3 Interests</h2>
 
-  <input type="text" id="userInput" placeholder="Type your favorite interest…">
-  <button onclick="sendMsg()">Send</button>
-</div>
+<label><input type="checkbox" value="Food"> Food</label><br>
+<label><input type="checkbox" value="Travel"> Travel</label><br>
+<label><input type="checkbox" value="Sports"> Sports</label><br>
+<label><input type="checkbox" value="Music"> Music</label><br>
+<label><input type="checkbox" value="Games"> Games</label><br>
+<br>
+
+<button onclick="submitChoices()">Submit</button>
+
+<p id="msg"></p>
 
 <script>
-const scriptURL = "https://script.google.com/d/1NxcW9qRuNkpTrKY4XJw0sioM3BKzmtUsmeGC82g6tEcD5O2SWAmIkJvW/edit?usp=sharing";
+const API = "https://script.google.com/d/1NxcW9qRuNkpTrKY4XJw0sioM3BKzmtUsmeGC82g6tEcD5O2SWAmIkJvW/edit?usp=sharing"; // Replace after Deploy
 
-function sendMsg() {
-  const input = document.getElementById("userInput");
-  const text = input.value.trim();
-  if (!text) return;
+function submitChoices() {
+  const selected = [...document.querySelectorAll("input:checked")].map(e => e.value);
+  if (selected.length !== 3) {
+    document.getElementById("msg").innerHTML = "Choose exactly 3!";
+    return;
+  }
 
-  addMsg("🧍 You: " + text);
-
-  fetch(scriptURL, {
+  fetch(API, {
     method: "POST",
-    body: JSON.stringify({ interest: text })
-  }).then(() => {
-    addMsg("🤖 Bot: Recorded anonymously!");
-  }).catch(() => {
-    addMsg("⚠ Failed to record.");
+    contentType: "application/json",
+    body: JSON.stringify({ choices: selected })
+  })
+  .then(r => r.json())
+  .then(res => {
+    document.getElementById("msg").innerHTML = "Recorded! Your ID: " + res.user;
   });
-
-  input.value = "";
-}
-
-function addMsg(txt) {
-  const box = document.getElementById("messages");
-  box.innerHTML += "<div>" + txt + "</div>";
-  box.scrollTop = box.scrollHeight;
 }
 </script>
 </body>
